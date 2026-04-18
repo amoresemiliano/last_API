@@ -3,76 +3,103 @@ import Dashboard from './components/Dashboard';
 import { SecondaryMetrics } from './components/SecondaryMetrics';
 import { DetailView } from './components/DetailView';
 
+// Generador de datos para que el mapa SIEMPRE tenga colores y valores
+const generateFullHeatmap = () => {
+  const days = ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'];
+  const allHours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
+  const data = {};
+  days.forEach(day => {
+    data[day] = {};
+    allHours.forEach(h => {
+      data[day][h] = {
+        s: Math.floor(Math.random() * 1500) + 300, 
+        st: Math.floor(Math.random() * 4) + 1,    
+        t: Math.floor(Math.random() * 30) + 10,   
+        c: Math.floor(Math.random() * 60) + 15,   
+        v: Math.floor(Math.random() * 4) + 1      
+      };
+    });
+  });
+  return data;
+};
+
 const MOCK_DATA = {
   stats: { totalSales: "2.450", salesTrend: "+12%", avgTicket: "34.20", ticketTrend: "+2%", occupancy: "142", occTrend: "+5%", avgTime: "52", timeTrend: "-4%" },
-  heatmap: { 'VIE': { 13: 1200, 14: 2500, 21: 2800, 22: 1900 }, 'SAB': { 13: 1500, 14: 3100, 21: 3400, 22: 2500 } },
-  staff: { 'VIE': { 13: 3, 14: 4, 21: 5, 22: 4 }, 'SAB': { 13: 4, 14: 6, 21: 6, 22: 5 } },
-  channels: [
-    { name: 'Local', percent: 65, color: 'bg-green-500' },
-    { name: 'Apps Delivery', percent: 25, color: 'bg-blue-500' },
-    { name: 'Shop Online', percent: 10, color: 'bg-purple-500' }
-  ],
-  topProducts: [
-    { name: 'Burger Vegen Extra', qty: 84, type: 'STAR' },
-    { name: 'Papas Nexus BBQ', qty: 62, type: 'PLOW' },
-    { name: 'Cerveza Artesana', qty: 15, type: 'PUZZLE' },
-    { name: 'Postre de Soja', qty: 5, type: 'DOG' }
-  ],
-  anomalies: [
-    { title: "Mesa 14: Sobremesa crítica", desc: "Duración actual: 2h 15m (+45m del promedio)" },
-    { title: "Ticket #402: Consumo inusual", desc: "Gasto de 85€ (Promedio: 34€)" }
-  ]
+  heatmap: generateFullHeatmap(),
+  products: Array.from({ length: 20 }, (_, i) => ({
+    id: i,
+    name: ['Burger Vegen', 'Tacos Heura', 'Pizza Nexus', 'Bowl Zen', 'Papas BBQ', 'Nuggets Soja', 'Cerveza Artesana', 'Kombucha', 'Tarta Queso', 'Café Especialty', 'Wrap Falafel', 'Ensalada Kale', 'Smoothie Green', 'Hummus Bio', 'Ramen Veg', 'Poke Tofu', 'Nachos Vegen', 'Bao Setas', 'Zumo Natural', 'Té Matcha'][i],
+    qty: Math.floor(Math.random() * 100) + 10,
+    type: ['STAR', 'PLOW', 'PUZZLE', 'DOG'][Math.floor(Math.random() * 4)]
+  })),
+  channels: [ { name: 'Local', percent: 65, color: 'bg-green-500' }, { name: 'Apps', percent: 25, color: 'bg-blue-500' }, { name: 'Web', percent: 10, color: 'bg-purple-500' } ],
+  anomalies: [ { title: "Mesa 14: Sobremesa crítica", desc: "Duración actual: 2h 15m" } ]
 };
 
 function App() {
   const [view, setView] = useState('dashboard');
   const [activeTurn, setActiveTurn] = useState('MEDIODÍA');
+  const [filterType, setFilterType] = useState(null);
+
+  // CORRECCIÓN FINAL: Los arrays de horas ahora se devuelven correctamente
+  const getVisibleHours = () => {
+    if (activeTurn === 'MAÑANA') return [8, 9, 10, 11, 12];
+    if (activeTurn === 'MEDIODÍA') return [12, 13, 14, 15, 16, 17];
+    if (activeTurn === 'NOCHE') return [18, 19, 20, 21, 22, 23];
+    return [12, 13, 14, 15, 16, 17]; // Fallback
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] p-4 md:p-8 max-w-7xl mx-auto space-y-8 pb-20">
-      <header className="flex justify-between items-center">
-        <div>
+      <header className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div onClick={() => setView('dashboard')} className="cursor-pointer">
           <h1 className="text-2xl font-bold text-white tracking-tighter italic">
             VEGEN <span className="text-green-500 font-light not-italic uppercase text-sm">Manager Lite</span>
           </h1>
-          <p className="text-gray-600 text-[9px] uppercase tracking-[0.3em]">Horeca Intelligence System</p>
+          <p className="text-gray-600 text-[9px] uppercase tracking-[0.3em]">Horeca Advanced Analytics</p>
         </div>
         
-        {view === 'dashboard' && (
-          <div className="hidden md:flex p-1 bg-gray-900 rounded-xl border border-gray-800">
-            {['MAÑANA', 'MEDIODÍA', 'NOCHE'].map(t => (
-              <button key={t} onClick={() => setActiveTurn(t)} 
-                className={`px-3 py-1.5 rounded-lg text-[9px] font-black transition-all ${activeTurn === t ? 'bg-green-500 text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}>
-                {t}
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="flex p-1 bg-gray-900 rounded-xl border border-gray-800">
+          {['MAÑANA', 'MEDIODÍA', 'NOCHE'].map(t => (
+            <button 
+              key={t} 
+              onClick={() => setActiveTurn(t)} 
+              className={`px-4 py-2 rounded-lg text-[9px] font-black transition-all ${activeTurn === t ? 'bg-green-500 text-black shadow-lg shadow-green-500/20' : 'text-gray-500 hover:text-white'}`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
       </header>
       
       {view === 'dashboard' ? (
-        <div className="space-y-8">
+        <div className="space-y-8 animate-in fade-in duration-500">
           <Dashboard 
             stats={MOCK_DATA.stats} 
             heatmapData={MOCK_DATA.heatmap} 
-            staffData={MOCK_DATA.staff} 
+            visibleHours={getVisibleHours()}
             onStatClick={(id) => setView(id)} 
           />
           <SecondaryMetrics 
             channels={MOCK_DATA.channels} 
-            topProducts={MOCK_DATA.topProducts} 
+            topProducts={MOCK_DATA.products.slice(0, 4)}
             anomalies={MOCK_DATA.anomalies}
             onProductClick={() => setView('products')}
           />
         </div>
       ) : (
-        <DetailView type={view} onBack={() => setView('dashboard')} />
+        <DetailView 
+          type={view} 
+          data={MOCK_DATA} 
+          filterType={filterType}
+          setFilterType={setFilterType}
+          onBack={() => { setView('dashboard'); setFilterType(null); }} 
+        />
       )}
     </div>
   );
 }
 
 export default App;
-
 
 

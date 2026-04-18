@@ -1,49 +1,78 @@
 import React from 'react';
 
 const days = ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'];
-const hours = [9, 10, 11, 12, 13, 14, 15, 20, 21, 22];
 
-export const Heatmap = ({ data = {}, staffData = {} }) => {
-  const getEfficiency = (sales, staff) => {
-    if (!sales || sales === 0) return { color: 'bg-gray-800/10', status: 'Sin actividad' };
-    const ratio = sales / (staff || 1);
-    if (ratio > 500) return { color: 'bg-green-500', status: 'Riesgo de Saturación' };
-    if (ratio > 200) return { color: 'bg-green-600/60', status: 'Eficiencia Óptima' };
-    return { color: 'bg-green-900/30', status: 'Exceso de Personal' };
+export const Heatmap = ({ data = {}, visibleHours = [] }) => {
+  
+  // 1. Blindaje: Si no hay horas visibles, mostramos un mensaje amigable en lugar de negro
+  if (!visibleHours || visibleHours.length === 0) {
+    return (
+      <div className="bg-[#161616] p-12 rounded-3xl border border-gray-800 text-center">
+        <p className="text-gray-500 text-xs font-bold uppercase tracking-widest animate-pulse">
+          Selecciona un turno (Mañana/Mediodía/Noche) para ver datos
+        </p>
+      </div>
+    );
+  }
+
+  const getColor = (riskLevel) => {
+    switch(riskLevel) {
+      case 1: return 'bg-green-500';
+      case 2: return 'bg-yellow-500';
+      case 3: return 'bg-orange-500';
+      case 4: return 'bg-red-500';
+      default: return 'bg-gray-800/20';
+    }
   };
 
   return (
     <div className="bg-[#161616] p-6 rounded-3xl border border-gray-800 shadow-xl overflow-x-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-white font-bold flex items-center gap-2 text-[10px] uppercase tracking-widest">
-          📊 VENTAS VS STAFF
-        </h3>
-      </div>
       <div className="min-w-[700px]">
+        {/* Cabecera de Horas */}
         <div className="grid grid-cols-11 gap-2 mb-4">
           <div className="w-12"></div>
-          {hours.map(h => <div key={h} className="text-center text-[10px] text-gray-500 font-bold">{h}H</div>)}
+          {visibleHours.map(h => (
+            <div key={h} className="text-center text-[10px] text-gray-500 font-black">
+              {h}:00H
+            </div>
+          ))}
         </div>
+
+        {/* Filas de Días */}
         {days.map(day => (
-          <div key={day} className="grid grid-cols-11 gap-2 mb-2">
-            <div className="text-[10px] text-gray-400 font-bold flex items-center uppercase">{day}</div>
-            {hours.map(h => {
-              const dayData = data[day] || {};
-              const dayStaff = staffData[day] || {};
-              const sales = dayData[h] || 0;
-              const staff = dayStaff[h] || 0;
-              const { color, status } = getEfficiency(sales, staff);
+          <div key={day} className="grid grid-cols-11 gap-2 mb-2 text-center">
+            <div className="text-[10px] text-gray-500 font-black flex items-center justify-start uppercase italic">
+              {day}
+            </div>
+            
+            {visibleHours.map(h => {
+              const cell = data[day]?.[h] || { s: 0, st: 0, t: 0, c: 0, v: 0 };
               
               return (
-                <div key={h} className={`group relative h-14 rounded-xl ${color} border border-white/5 flex flex-col items-center justify-center transition-all hover:scale-105 cursor-pointer`}>
-                  <span className="text-[10px] font-bold text-white">{sales > 0 ? `${sales}€` : '-'}</span>
-                  {sales > 0 && <span className="text-[8px] text-white/60">👤 {staff}</span>}
-                  <div className="absolute bottom-full mb-2 hidden group-hover:block z-50 bg-white text-black text-[10px] p-2 rounded-lg shadow-2xl w-32 font-medium">
-                    <p className="border-b pb-1 mb-1 font-bold">{day} - {h}h</p>
-                    <p>Ventas: {sales}€</p>
-                    <p>Staff: {staff}</p>
-                    <p className="mt-1 text-green-700 font-bold">{status}</p>
-                  </div>
+                <div 
+                  key={h} 
+                  className={`group relative h-14 rounded-xl ${getColor(cell.v)} border border-white/5 flex flex-col items-center justify-center transition-all hover:scale-110 cursor-help`}
+                >
+                  <span className="text-[10px] font-black text-black/90">
+                    {cell.s > 0 ? `${cell.s}€` : '-'}
+                  </span>
+                  {cell.s > 0 && (
+                    <span className="text-[8px] font-bold text-black/60 uppercase">
+                      {cell.c}pax
+                    </span>
+                  )}
+
+                  {/* Tooltip Detallado */}
+                  {cell.s > 0 && (
+                    <div className="absolute bottom-full mb-3 hidden group-hover:block z-50 bg-white text-black p-4 rounded-2xl shadow-2xl w-48 text-left">
+                      <p className="text-[10px] font-black border-b mb-2 pb-1">{day} • {h}:00H</p>
+                      <div className="space-y-1 text-[10px] font-bold">
+                        <p className="flex justify-between">Ventas: <span className="text-green-600">{cell.s}€</span></p>
+                        <p className="flex justify-between">Tickets: <span>{cell.t}</span></p>
+                        <p className="flex justify-between border-t pt-1 mt-1">Staff: <span className="text-blue-600">👤 {cell.st}</span></p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -53,5 +82,7 @@ export const Heatmap = ({ data = {}, staffData = {} }) => {
     </div>
   );
 };
+
+
 
 
