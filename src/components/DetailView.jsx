@@ -1,45 +1,40 @@
 import React from 'react';
 
-export const DetailView = ({ type, data, onBack }) => {
+export const DetailView = ({ type, onBack }) => {
+  const isSales = type === 'sales';
+  
   return (
-    <div className="animate-in slide-in-from-right duration-500">
-      <button onClick={onBack} className="text-green-500 text-xs font-bold mb-6 hover:translate-x-[-4px] transition-transform flex items-center gap-2">
-        ← VOLVER AL DASHBOARD
+    <div className="space-y-8 animate-in slide-in-from-right duration-500">
+      <button onClick={onBack} className="text-green-500 text-[10px] font-black tracking-widest mb-4 flex items-center gap-2 hover:opacity-70">
+        ← VOLVER AL PANEL GENERAL
       </button>
 
-      {/* Recuadro Llamativo Histórico "Desde Siempre" */}
-      <div className="bg-gradient-to-br from-green-500 to-green-700 p-6 rounded-3xl mb-8 shadow-2xl text-black">
-        <p className="text-[10px] font-black uppercase opacity-70 tracking-widest">Rendimiento Histórico Acumulado</p>
-        <h2 className="text-4xl font-black tracking-tighter">
-          {type === 'sales' ? '142.850€' : '8.420 unidades'}
+      <div className="bg-gradient-to-br from-green-500 to-green-600 p-8 rounded-[2.5rem] shadow-2xl text-black">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Histórico Acumulado (Total)</p>
+        <h2 className="text-5xl font-black tracking-tighter my-2">
+          {isSales ? '142.850€' : '8.420 u.'}
         </h2>
-        <p className="text-xs font-medium mt-1">Desde la apertura del local vía Last.app</p>
+        <div className="flex items-center gap-2 mt-2">
+          <span className="bg-black/10 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase">Desde Siempre</span>
+          <p className="text-[10px] font-bold">Datos sincronizados con Last.app Cloud</p>
+        </div>
       </div>
 
       <div className="bg-[#161616] p-6 rounded-3xl border border-gray-800">
-        <h3 className="text-white font-bold mb-6 uppercase text-sm tracking-widest">Listado Detallado: Mes Actual</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="text-gray-500 border-b border-gray-800">
-                <th className="pb-4">FECHA</th>
-                <th className="pb-4">{type === 'sales' ? 'MONTO' : 'PRODUCTO'}</th>
-                <th className="pb-4">{type === 'sales' ? 'TICKETS' : 'CATEGORÍA'}</th>
-                <th className="pb-4">ESTADO</th>
-              </tr>
-            </thead>
-            <tbody className="text-gray-300">
-              {/* Aquí mapearías los datos reales */}
-              {[1, 2, 3, 4, 5].map(i => (
-                <tr key={i} className="border-b border-gray-800/50 hover:bg-white/5 transition-colors">
-                  <td className="py-4 font-mono">1{i}/04/2024</td>
-                  <td className="py-4 font-bold text-white">{type === 'sales' ? '1.240€' : 'Burger Vegen'}</td>
-                  <td className="py-4">{type === 'sales' ? '42' : 'ESTRELLA ⭐'}</td>
-                  <td className="py-4"><span className="px-2 py-1 bg-green-500/10 text-green-400 rounded text-[9px] font-bold">COMPLETADO</span></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <h3 className="text-white font-bold mb-6 uppercase text-[10px] tracking-widest opacity-50">Desglose Mensual</h3>
+        <div className="space-y-4">
+          {[1,2,3,4,5].map(i => (
+            <div key={i} className="flex justify-between items-center p-4 rounded-2xl border border-gray-800/50 hover:bg-white/[0.02] transition-colors">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-mono text-gray-500">{18-i}/04/2024</span>
+                <span className="text-sm font-bold text-white">{isSales ? 'Cierre de Caja' : 'Top Vendido: Burger'}</span>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-black text-green-500">{isSales ? '1.240€' : '42 u.'}</p>
+                <p className="text-[9px] font-bold text-gray-600 uppercase tracking-tighter">Status: Auditado</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
