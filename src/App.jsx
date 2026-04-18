@@ -3,10 +3,9 @@ import Dashboard from './components/Dashboard';
 import { SecondaryMetrics } from './components/SecondaryMetrics';
 import { DetailView } from './components/DetailView';
 
-// Generador de datos para que el mapa SIEMPRE tenga colores y valores
 const generateFullHeatmap = () => {
   const days = ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'];
-  const allHours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
+  const allHours = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
   const data = {};
   days.forEach(day => {
     data[day] = {};
@@ -41,12 +40,11 @@ function App() {
   const [activeTurn, setActiveTurn] = useState('MEDIODÍA');
   const [filterType, setFilterType] = useState(null);
 
-  // CORRECCIÓN FINAL: Los arrays de horas ahora se devuelven correctamente
   const getVisibleHours = () => {
-    if (activeTurn === 'MAÑANA') return [8, 9, 10, 11, 12];
-    if (activeTurn === 'MEDIODÍA') return [12, 13, 14, 15, 16, 17];
-    if (activeTurn === 'NOCHE') return [18, 19, 20, 21, 22, 23];
-    return [12, 13, 14, 15, 16, 17]; // Fallback
+    if (activeTurn === 'MAÑANA') return [9, 10, 11, 12];
+    if (activeTurn === 'MEDIODÍA') return [12, 13, 14, 15, 16];
+    if (activeTurn === 'NOCHE') return [17, 18, 19, 20, 21, 22];
+    return [12, 13, 14, 15, 16];
   };
 
   return (
@@ -59,17 +57,19 @@ function App() {
           <p className="text-gray-600 text-[9px] uppercase tracking-[0.3em]">Horeca Advanced Analytics</p>
         </div>
         
-        <div className="flex p-1 bg-gray-900 rounded-xl border border-gray-800">
-          {['MAÑANA', 'MEDIODÍA', 'NOCHE'].map(t => (
-            <button 
-              key={t} 
-              onClick={() => setActiveTurn(t)} 
-              className={`px-4 py-2 rounded-lg text-[9px] font-black transition-all ${activeTurn === t ? 'bg-green-500 text-black shadow-lg shadow-green-500/20' : 'text-gray-500 hover:text-white'}`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
+        {view === 'dashboard' && (
+          <div className="flex p-1 bg-gray-900 rounded-xl border border-gray-800">
+            {['MAÑANA', 'MEDIODÍA', 'NOCHE'].map(t => (
+              <button 
+                key={t} 
+                onClick={() => setActiveTurn(t)} 
+                className={`px-4 py-2 rounded-lg text-[9px] font-black transition-all ${activeTurn === t ? 'bg-green-500 text-black shadow-lg shadow-green-500/20' : 'text-gray-500 hover:text-white'}`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        )}
       </header>
       
       {view === 'dashboard' ? (
@@ -80,11 +80,14 @@ function App() {
             visibleHours={getVisibleHours()}
             onStatClick={(id) => setView(id)} 
           />
+          {/* AQUÍ CONECTAMOS LAS 3 FUNCIONES DE CLIC */}
           <SecondaryMetrics 
             channels={MOCK_DATA.channels} 
             topProducts={MOCK_DATA.products.slice(0, 4)}
             anomalies={MOCK_DATA.anomalies}
             onProductClick={() => setView('products')}
+            onChannelClick={() => setView('channels')} // <-- Conectado
+            onAnomalyClick={() => setView('anomalies')} // <-- Conectado
           />
         </div>
       ) : (
@@ -101,5 +104,6 @@ function App() {
 }
 
 export default App;
+
 
 
