@@ -18,21 +18,21 @@ export default function Dashboard({ stats, heatmapData, visibleHours, onStatClic
           value={`${stats.avgTicket}€`} 
           trend={stats.ticketTrend} 
           icon="🎫" 
-          onClick={() => onStatClick('sales')} 
+          onClick={() => onStatClick('ticket')} 
         />
         <StatCard 
           title="Comensales" 
           value={stats.occupancy} 
           trend={stats.occTrend} 
           icon="👥" 
-          onClick={() => onStatClick('sales')} 
+          onClick={() => onStatClick('occupancy')} 
         />
         <StatCard 
           title="Estancia Media" 
           value={`${stats.avgTime}m`} 
           trend={stats.timeTrend} 
           icon="⏱️" 
-          onClick={() => onStatClick('sales')} 
+          onClick={() => onStatClick('duration')} 
         />
       </div>
 
