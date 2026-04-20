@@ -1,129 +1,59 @@
 import React from 'react';
+import { getStaffCount } from '../utils/staffLogic';
 
-const days = ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'];
+const DAYS = ['LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB', 'DOM'];
 
 export const Heatmap = ({ data = {}, visibleHours = [] }) => {
-  
-  // Blindaje por si no hay horas seleccionadas
   if (!visibleHours || visibleHours.length === 0) return null;
 
-  // Función para generar gradientes y sombras según el riesgo (v)
-  const getColorClasses = (riskLevel) => {
-    switch(riskLevel) {
-      case 1: return 'bg-gradient-to-br from-green-400 to-green-600 shadow-[0_0_15px_rgba(34,197,94,0.3)]'; // Óptimo
-      case 2: return 'bg-gradient-to-br from-yellow-400 to-yellow-600 shadow-[0_0_15px_rgba(234,179,8,0.2)]'; // Aviso
-      case 3: return 'bg-gradient-to-br from-orange-400 to-orange-600 shadow-[0_0_15px_rgba(249,115,22,0.2)]'; // Riesgo
-      case 4: return 'bg-gradient-to-br from-red-500 to-red-700 shadow-[0_0_15px_rgba(239,68,68,0.3)]'; // Crítico
-      default: return 'bg-gray-800/20';
+  const getColorClasses = (v) => {
+    switch(v) {
+      case 1: return 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.4)]'; 
+      case 2: return 'bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.2)]'; 
+      case 3: return 'bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.2)]'; 
+      case 4: return 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.4)]'; 
+      default: return 'bg-gray-100 dark:bg-gray-800/10';
     }
   };
 
-  const getStatusLabel = (v) => {
-    if (v === 1) return "EFICIENCIA ÓPTIMA";
-    if (v === 2) return "REVISAR PERSONAL";
-    if (v === 3) return "RIESGO OPERATIVO";
-    if (v === 4) return "CRÍTICO / SATURADO";
-    return "";
-  };
-
   return (
-    <div className="bg-[#161616] p-6 md:p-8 rounded-[2.5rem] border border-gray-800 shadow-2xl animate-in fade-in zoom-in duration-500">
-      <div className="flex justify-between items-center mb-8">
-        <h3 className="text-white font-bold text-[10px] uppercase tracking-[0.3em] opacity-40">
-          Análisis de Eficiencia Temporal
-        </h3>
-        <div className="flex gap-2">
-           <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-           <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 opacity-50"></div>
-           <div className="w-1.5 h-1.5 rounded-full bg-red-500 opacity-50"></div>
-        </div>
-      </div>
-
-      <div className="w-full">
-        {/* Cabecera de Horas - Flexbox para ocupar 100% ancho */}
-        <div className="flex mb-4 w-full">
-          <div className="w-16 flex-shrink-0"></div>
-          <div className="flex-1 grid grid-flow-col auto-cols-fr gap-3">
-            {visibleHours.map(h => (
-              <div key={h} className="text-center text-[10px] text-gray-500 font-black tracking-tighter">
-                {h}:00H
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Filas de Días */}
-        {days.map(day => (
-          <div key={day} className="flex mb-3 w-full group/row">
-            <div className="w-16 flex-shrink-0 text-[10px] text-gray-400 font-black flex items-center uppercase italic group-hover/row:text-green-500 transition-colors">
-              {day}
-            </div>
-            
-            {/* Celdas al 100% del ancho con Grid Automático */}
-            <div className="flex-1 grid grid-flow-col auto-cols-fr gap-3">
-              {visibleHours.map(h => {
-                const cell = data[day]?.[h] || { s: 0, st: 0, t: 0, c: 0, v: 0 };
-                
-                return (
-                  <div 
-                    key={h} 
-                    className={`group relative h-16 rounded-2xl ${getColorClasses(cell.v)} border border-white/10 flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 hover:z-30 cursor-help`}
-                  >
-                    {cell.s > 0 && (
-                      <>
-                        <span className="text-[11px] font-black text-black/90 tracking-tighter">
-                          {cell.s}€
-                        </span>
-                        <span className="text-[8px] font-bold text-black/50 uppercase tracking-tighter">
-                          {cell.c}pax
-                        </span>
-                      </>
-                    )}
-
-                    {/* TOOLTIP PREMIUM */}
-                    {cell.s > 0 && (
-                      <div className="absolute bottom-full mb-4 hidden group-hover:block z-50 bg-white text-black p-5 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-56 text-left animate-in fade-in slide-in-from-bottom-2">
-                        <div className="flex justify-between items-center border-b border-gray-100 mb-3 pb-2">
-                          <p className="text-[10px] font-black uppercase tracking-widest">{day} • {h}:00H</p>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-[11px]">
-                            <span className="text-gray-400 font-bold uppercase">Monto</span>
-                            <span className="font-black text-green-600">{cell.s}€</span>
-                          </div>
-                          <div className="flex justify-between text-[11px]">
-                            <span className="text-gray-400 font-bold uppercase">Tickets</span>
-                            <span className="font-black">{cell.t}</span>
-                          </div>
-                          <div className="flex justify-between text-[11px]">
-                            <span className="text-gray-400 font-bold uppercase">Comensales</span>
-                            <span className="font-black text-blue-600">{cell.c} pax</span>
-                          </div>
-                          <div className="flex justify-between text-[11px] border-t border-gray-100 pt-3 mt-2 font-black italic">
-                            <span className="text-gray-400">STAFF</span>
-                            <span>👤 {cell.st} Empleados</span>
-                          </div>
-                        </div>
-
-                        <div className="mt-4 text-center bg-gray-100 py-2 rounded-xl">
-                          <p className="text-[8px] font-black tracking-widest text-gray-500 uppercase">Status</p>
-                          <p className="text-[10px] font-black uppercase">{getStatusLabel(cell.v)}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+    <div className="bg-white dark:bg-[#161616] p-8 rounded-[2.5rem] border border-gray-200 dark:border-gray-800 transition-all overflow-x-auto shadow-2xl">
+      <div className="flex w-full mb-6 min-w-[700px]">
+        <div className="w-24"></div>
+        {DAYS.map(d => (
+          <div key={d} className="flex-1 text-center text-[10px] text-gray-400 dark:text-gray-500 font-black uppercase tracking-widest">{d}</div>
         ))}
       </div>
+
+      {visibleHours.map(h => (
+        <div key={h} className="flex w-full mb-3 items-center min-w-[700px]">
+          <div className="w-24 text-[11px] text-gray-500 dark:text-gray-400 font-black italic">{h}:00H</div>
+          {DAYS.map(day => {
+            const cell = data[day]?.[h] || { s: 0, v: 0, c: 0, t: 0 };
+            const staff = getStaffCount(day, h);
+            return (
+              <div key={`${day}-${h}`} className={`flex-1 group relative h-14 mx-1 rounded-xl transition-all cursor-help ${cell.s > 0 ? getColorClasses(cell.v) : 'bg-gray-50 dark:bg-gray-900/40'}`}>
+                {cell.s > 0 && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-[10px] font-black text-black/80">{Math.round(cell.s)}€</span>
+                    <span className="text-[7px] font-bold text-black/40 uppercase">👤 {staff}</span>
+                  </div>
+                )}
+                {/* TOOLTIP RESTAURADO */}
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 hidden group-hover:block z-50 bg-white dark:bg-gray-800 text-black dark:text-white p-4 rounded-2xl shadow-2xl w-44 animate-in fade-in zoom-in border border-gray-100 dark:border-gray-700">
+                   <p className="text-[10px] font-black border-b dark:border-gray-700 mb-2 pb-1 uppercase">{day} • {h}h</p>
+                   <div className="space-y-1 text-[9px] font-bold">
+                     <p className="flex justify-between">INGRESOS: <span className="text-green-600">{cell.s.toFixed(2)}€</span></p>
+                     <p className="flex justify-between">PAX: <span>{cell.c}</span></p>
+                     <p className="flex justify-between">TICKETS: <span>{cell.t}</span></p>
+                     <p className="flex justify-between text-blue-500 border-t dark:border-gray-700 pt-1 mt-1">PERSONAL: 👤 {staff}</p>
+                   </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ))}
     </div>
   );
 };
-
-
-
-
-
